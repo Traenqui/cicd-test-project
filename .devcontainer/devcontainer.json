@@ -1,0 +1,21 @@
+{
+	"name": "CI/CD Test Project",
+	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	"runArgs": [
+		"--env-file",
+		".devcontainer/devcontainer.env"
+	],
+	"features": {
+		"ghcr.io/meaningful-ooo/devcontainer-features/homebrew:2": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {}
+	},
+	"remoteUser": "vscode",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python"
+			]
+		}
+	}
+}
