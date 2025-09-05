@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from . import __version__
+__VERSION__ = "0.1.0"
 
 app = FastAPI(
     title="CI/CD Test API",
-    version=__version__,
+    version=__VERSION__,
     docs_url="/api/docs",
 )
 
@@ -23,11 +23,4 @@ def read_root():
 
 @app.get("/version")
 def get_version():
-    return {"status": "Ok", "version": __version__}
-
-def main():
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
-
-if __name__ == "__main__":
-    main()
+    return {"status": "Ok", "version": __VERSION__}
