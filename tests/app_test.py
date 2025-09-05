@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from backend.app import app
-from backend import __version__
+from backend.app import __VERSION__
 
 client = TestClient(app)
 
@@ -14,4 +14,4 @@ def test_version_matches_package():
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "Ok"
-    assert body["version"] == __version__
+    assert body["version"] == __VERSION__
