@@ -1,0 +1,79 @@
+name: job_docker_build_check.yml
+
+on:
+  push:
+    branches-ignore:
+      - master
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      IMAGE_NAME: backend-test-image:${{ github.sha }}
+      CONTAINER_NAME: backend-test-container
+      PORT: 5000
+      HEALTH_PATH: /health
+      ATTEMPTS: 60
+      SLEEP: 2
+      ENVIRONMENT: local
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build Docker image
+        run: docker build -f Dockerfile -t "$IMAGE_NAME" .
+
+      - name: Run container (detached, keep logs)
+        run: |
+          docker run -d \
+            --name "$CONTAINER_NAME" \
+            -p ${PORT}:${PORT} \
+            -e ENVIRONMENT="${ENVIRONMENT}" \
+            "$IMAGE_NAME"
+
+      - name: Wait for container to be healthy (Docker HEALTHCHECK or HTTP fallback)
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          HEALTHDEF="$(docker inspect --format='{{json .Config.Healthcheck}}' "$IMAGE_NAME")"
+          if [ "$HEALTHDEF" != "null" ]; then
+            for i in $(seq 1 "$ATTEMPTS"); do
+              STATUS="$(docker inspect --format='{{.State.Health.Status}}' "$CONTAINER_NAME" 2>/dev/null || echo "unknown")"
+              echo "[$i/$ATTEMPTS] Health: $STATUS"
+              if [ "$STATUS" = "healthy" ]; then
+                echo "Health check passed ✅"
+                exit 0
+              elif [ "$STATUS" = "unhealthy" ] || [ "$STATUS" = "exited" ] || [ "$STATUS" = "dead" ]; then
+                echo "Container reported $STATUS ❌"
+                exit 1
+              fi
+              sleep "$SLEEP"
+            done
+            echo "Timed out waiting for healthy ❌"; exit 1
+          else
+            for i in $(seq 1 "$ATTEMPTS"); do
+              CODE="$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:${PORT}${HEALTH_PATH}" || true)"
+              if [[ "$CODE" =~ ^2[0-9]{2}$ || "$CODE" =~ ^3[0-9]{2}$ ]]; then
+                echo "Health check passed ✅ (HTTP $CODE)"; exit 0
+              fi
+              echo "[$i/$ATTEMPTS] Not ready yet (status=${CODE}). Retrying in ${SLEEP}s..."
+              sleep "$SLEEP"
+            done
+            echo "Health check failed ❌"; exit 1
+          fi
+
+      - name: Print container logs and health logs on failure
+        if: failure()
+        run: |
+          echo "---- docker ps ----"; docker ps -a || true
+          echo "---- container logs ----"; docker logs "$CONTAINER_NAME" || true
+          echo "---- docker health log ----"
+          docker inspect --format='{{range .State.Health.Log}}{{.Start}} | code={{.ExitCode}} | {{printf "%q" .Output}}{{println}}{{end}}' "$CONTAINER_NAME" 2>/dev/null || true
+
+      - name: Stop & remove container
+        if: always()
+        run: |
+          docker stop "$CONTAINER_NAME" || true
+          docker rm "$CONTAINER_NAME" || true

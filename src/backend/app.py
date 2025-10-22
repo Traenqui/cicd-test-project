@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from starlette.middleware.cors import CORSMiddleware
 
 __VERSION__ = "0.1.0"
@@ -24,3 +24,7 @@ def read_root():
 @app.get("/version")
 def get_version():
     return {"status": "Ok", "version": __VERSION__}
+
+@app.get("/health", tags=["healthcheck"], status_code=status.HTTP_200_OK)
+def get_health_status():
+    return {"status": "OK"}
