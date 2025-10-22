@@ -5,3 +5,4 @@
 - Add matrics with Prometheus, with Dockerfile
 - Use OpenTelemetry, Grafana
 - Add Logging Docker, Loki
+- Test Canary Deployment
