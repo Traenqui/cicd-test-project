@@ -37,6 +37,8 @@ jobs:
     name: Coverage
     needs: [test]
     uses: ./.github/workflows/coverage.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   docker_build_check:
     name: Docker Build Check
