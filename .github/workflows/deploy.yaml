@@ -1,0 +1,54 @@
+name: Deployment
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  format:
+    name: Format
+    uses: ./.github/workflows/format.yaml
+
+  lint:
+    name: Lint
+    uses: ./.github/workflows/lint.yaml
+
+  typecheck:
+    name: Type Check
+    uses: ./.github/workflows/typechecking.yaml
+
+  build:
+    name: Build
+    needs: [format, lint, typecheck]
+    uses: ./.github/workflows/build.yaml
+
+  test:
+    name: Tests
+    needs: [build]
+    uses: ./.github/workflows/test.yaml
+
+  docker_build_check:
+    name: Docker Build Check
+    needs: [build]
+    uses: ./.github/workflows/docker_build.yaml
+
+  release:
+    name: Create and Publish Docker Image
+    needs: [docker_build_check, test]
+    uses: ./.github/workflows/docker_push.yaml
+
+  deploy:
+    name: Deploy to Production
+    needs: [release]
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deployment Step
+        run: echo "Deploying application..."

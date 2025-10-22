@@ -51,4 +51,6 @@ if [[ -s "requirements-dev.txt" ]]; then
   pip install -r requirements-dev.txt
 fi
 
+brew install act
+
 echo "Setup complete!"

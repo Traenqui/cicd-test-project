@@ -1,9 +1,6 @@
-name: job_docker_build_check.yml
+name: Docker Build and Health Check
 
 on:
-  push:
-    branches-ignore:
-      - master
   workflow_call:
 
 jobs:
