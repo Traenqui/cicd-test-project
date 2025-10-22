@@ -6,3 +6,4 @@
 - Use OpenTelemetry, Grafana
 - Add Logging Docker, Loki
 - Test Canary Deployment
+- Test coverage
