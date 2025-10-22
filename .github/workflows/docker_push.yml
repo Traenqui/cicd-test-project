@@ -4,7 +4,9 @@ run-name: "Build Docker image: ${{ github.sha }}"
 
 on:
   push:
-    branches: master
+    branches-ignore:
+      - master
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io
