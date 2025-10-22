@@ -17,13 +17,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
+
 @app.get("/version")
 def get_version():
     return {"status": "Ok", "version": __VERSION__}
+
 
 @app.get("/health", tags=["healthcheck"], status_code=status.HTTP_200_OK)
 def get_health_status():
