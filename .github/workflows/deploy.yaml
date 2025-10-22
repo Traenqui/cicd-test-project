@@ -33,6 +33,11 @@ jobs:
     needs: [build]
     uses: ./.github/workflows/test.yaml
 
+  coverage:
+    name: Coverage
+    needs: [test]
+    uses: ./.github/workflows/coverage.yml
+
   docker_build_check:
     name: Docker Build Check
     needs: [build]
